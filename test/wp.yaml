@@ -1,0 +1,41 @@
+
+kind: Deployment
+metadata:
+  name: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+      - name: wordpress
+        image: wordpress:5.6
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: config
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: web-conf
+          items:
+          - key: "wd.conf"
+            path: "wd.conf"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-svc
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+  selector:
+    app: wordpress

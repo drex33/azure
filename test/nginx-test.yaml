@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: nginx-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+     app: nginx-web
+  template:
+    metadata:
+      labels:
+        app: nginx-web
+    spec:
+      containers:
+      - name: nginx-web
+        image: nginx:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        volumeMounts:
+        - name: config
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: nginx-conf
+          items:
+          - key: "nginx.conf"
+            path: "nginx.conf"        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+  selector:
+    app: nginx-web
