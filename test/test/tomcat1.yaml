@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tomcat-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tomcat-test
+  template:
+    metadata:
+      labels:
+        app: tomcat-test
+    spec:
+      containers:
+      - name: tomcat-test
+        image: jssong.azurecr.io/project/was:latest
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat-test
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 32007
+    protocol: TCP
+  selector:
+    app: tomcat-test
+
+
+# db 연결 옵션
+        env:
+        - name: db_url
+          valueFrom:
+            secretKeyRef:
+              name: tomcat-secret
+              key: DB_URL
+        - name: db_user
+          valueFrom:
+            secretKeyRef:
+              name: tomcat-secret
+              key: DB_USER
+        - name: db_password
+          valueFrom:
+            secretKeyRef:
+              name: tomcat-secret
+              key: DB_PASSWORD

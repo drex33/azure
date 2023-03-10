@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tomcat-secret
+stringData:
+  DB_URL: "jdbc:mysql://jssong.mysql.database.azure.com/db"
+  DB_USER: "jssong"
+  DB_PASSWORD: "song7867!"
