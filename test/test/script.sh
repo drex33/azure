@@ -16,9 +16,6 @@ apt-get install -y docker.io
 # ACR (Azure Container Registry) login
 az acr login --name <Registry name>
 
-# Jumpbox 에 도커 설치
-apt-get install -y docker.io
-
 # nginx , wordpress official image pull
 docker pull nginx
 docker pull wordpress
@@ -43,9 +40,33 @@ helm search repo ingress-nginx
 helm install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx
 
 # 이후 YAML FILE 적용
-# DNS 영역 생성 후
-az network dns record-set a add-record
-    --resource-group <resouregroupname> \
-    --zone-name <my domain> \
-    --record-set-name "*.ingress" \
-    --ipv4-address <MY_EXTERNAL_IP>
+
+# 포탈에서 연결
+# 유저, 그룹 생성 후 FQDN (전역관리자 도메인)으로 생성한유저에게 Principal ID 할당 
+# 그 유저에 AKS Admin 권한 부여.
+# 전역관리자 즉, 구독을 가지고있는 contributor는 클러스터 어드민으로 지정불가함
+
+# 네임스페이스 분리운영을 위한 그룹 생성 
+az ad group create --display-name appdev --mail-nickname appdev --query Id -o tsv
+
+# 명시적인 롤 부여
+az role assignment create \
+  --assignee 그룹개체 ID \
+  --role "Azure Kubernetes Service Cluster User Role" \
+  --scope AKS 개체 ID
+
+# 사용자 계정 생성 (기본 제공된 FQDN 사용)
+az ad user create \
+  --display-name "AKS Dev" \
+  --user-principal-name FQDN 지정 \
+  --password 비밀번호 \
+  --query objectId -o tsv
+
+# 그룹에 추가
+az ad group member add --group appdev --member-id "위 생성된 그룹개체 ID"
+
+# 네임스페이스 생성
+kubectl create ns dev
+
+# Role , Rolebinding YAML FILE APPLY
+
